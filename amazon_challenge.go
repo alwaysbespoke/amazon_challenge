@@ -79,26 +79,6 @@ func (c *cache) check(key int, method string) {
 
 func (c *cache) shuffle(key int) {
 
-	/*
-
-	if c.lru[c.cacheSize-1] != key {
-
-		for i := 0; i < c.cacheSize; i++ {
-
-			c.lru[i] = c.lru[i+1]
-
-			if i == c.cacheSize-1 {
-
-				c.lru[c.cacheSize-1] = key
-
-			}
-
-		}
-
-	}
-
-	*/
-
 	if c.lru[c.newest] != key {
 
 		c.lru[c.newest] = key
