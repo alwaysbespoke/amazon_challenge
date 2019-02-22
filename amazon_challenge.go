@@ -18,10 +18,12 @@ import "fmt"
 //cache.put(5, 5)     //
 
 type cache struct {
-	l         int
-	oldest    []int
-	cacheSize int
-	m         map[int]int
+	newest		int
+	oldest		int
+	l         	int
+	lru    		[]int
+	cacheSize 	int
+	m         	map[int]int
 }
 
 func main() {
@@ -41,43 +43,80 @@ func main() {
 
 func New(cacheSize int) *cache {
 
-	return &cache{0, make([]int, 2), cacheSize, make(map[int]int)}
+	return &cache{0, 0, make([]int, cacheSize), cacheSize, make(map[int]int)}
 
 }
 
 func (c *cache) check(key int, method string) {
 
-	if method == "put" && c.m[key] != -1 {
-
-		c.l++
-
-	}
-
-	if c.l > c.cacheSize {
-
-		val := c.oldest[0]
-
-		c.m[val] = -1
-
-		c.l--
-
-	}
-
 	if method == "put" {
 
-		if c.oldest[1] != key {
-			c.oldest[0] = c.oldest[1]
+		if c.m[key] < 1 {
+
+			c.l++
+
+			if c.l > c.cacheSize {
+
+				oldest := c.lru[c.oldest]
+
+				c.m[oldest] = -1
+
+				c.l--
+
+			}
+
 		}
 
-		c.oldest[1] = key
+		shuffle(key)
 
 	} else if c.m[key] != -1 {
 
-		if c.oldest[1] != key {
-			c.oldest[0] = c.oldest[1]
+		shuffle(key)
+
+	}
+
+}
+
+func (c *cache) shuffle(key int) {
+
+	/*
+
+	if c.lru[c.cacheSize-1] != key {
+
+		for i := 0; i < c.cacheSize; i++ {
+
+			c.lru[i] = c.lru[i+1]
+
+			if i == c.cacheSize-1 {
+
+				c.lru[c.cacheSize-1] = key
+
+			}
+
 		}
 
-		c.oldest[1] = key
+	}
+
+	*/
+
+	if c.lru[c.newest] != key {
+
+		c.lru[c.newest] = key
+
+		c.newest++
+
+		if c.newest == c.cacheSize {
+
+			c.newest = 0
+		}
+
+		c.oldest = c.cacheSize + c.newest - 1
+
+		if c.oldest >= c.cacheSize {
+
+			c.oldest = c.oldest - c.cacheSize
+
+		}
 
 	}
 
@@ -90,7 +129,7 @@ func (c *cache) get(key int) int {
 
 	c.check(key, "get")
 
-	fmt.Println(c.oldest)
+	fmt.Println(c.lru)
 	fmt.Println(c.m)
 	fmt.Println(c.m[key])
 	fmt.Println()
@@ -108,7 +147,7 @@ func (c *cache) put(key int, value int) {
 
 	c.m[key] = value
 
-	fmt.Println(c.oldest)
+	fmt.Println(c.lru)
 	fmt.Println(c.m)
 	fmt.Println()
 
