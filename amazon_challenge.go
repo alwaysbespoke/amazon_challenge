@@ -43,7 +43,7 @@ func main() {
 
 func New(cacheSize int) *cache {
 
-	return &cache{0, 0, make([]int, cacheSize), cacheSize, make(map[int]int)}
+	return &cache{0, 0, 0, make([]int, cacheSize), cacheSize, make(map[int]int)}
 
 }
 
@@ -67,11 +67,11 @@ func (c *cache) check(key int, method string) {
 
 		}
 
-		shuffle(key)
+		c.shuffle(key)
 
 	} else if c.m[key] != -1 {
 
-		shuffle(key)
+		c.shuffle(key)
 
 	}
 
@@ -79,25 +79,31 @@ func (c *cache) check(key int, method string) {
 
 func (c *cache) shuffle(key int) {
 
-	if c.lru[c.newest] != key {
+	c.lru[c.newest] = key
 
-		c.lru[c.newest] = key
+	c.oldest = c.cacheSize + c.newest - 1
 
-		c.newest++
+	if c.oldest >= c.cacheSize {
 
-		if c.newest == c.cacheSize {
+		c.oldest = c.oldest - c.cacheSize
 
-			c.newest = 0
-		}
+	}
+	/*
+	fmt.Print("Newest_i ")
+	fmt.Print(c.newest)
+	fmt.Print(", Oldest_i ")
+	fmt.Println(c.oldest)
+	fmt.Print("Newest ")
+	fmt.Print(c.lru[c.newest])
+	fmt.Print(", Oldest ")
+	fmt.Print(c.lru[c.oldest])
+	fmt.Println()
+	*/
+	c.newest++
 
-		c.oldest = c.cacheSize + c.newest - 1
+	if c.newest == c.cacheSize {
 
-		if c.oldest >= c.cacheSize {
-
-			c.oldest = c.oldest - c.cacheSize
-
-		}
-
+		c.newest = 0
 	}
 
 }
@@ -105,14 +111,15 @@ func (c *cache) shuffle(key int) {
 func (c *cache) get(key int) int {
 
 	fmt.Print("get ")
-	fmt.Println(key)
+	fmt.Print(key)
 
 	c.check(key, "get")
 
-	fmt.Println(c.lru)
-	fmt.Println(c.m)
+	//fmt.Println(c.lru)
+	//fmt.Println(c.m)
+	fmt.Print(", returns -> ")
 	fmt.Println(c.m[key])
-	fmt.Println()
+	//fmt.Println()
 
 	return c.m[key]
 
@@ -127,8 +134,8 @@ func (c *cache) put(key int, value int) {
 
 	c.m[key] = value
 
-	fmt.Println(c.lru)
-	fmt.Println(c.m)
-	fmt.Println()
+	//fmt.Println(c.lru)
+	//fmt.Println(c.m)
+	//fmt.Println()
 
 }
